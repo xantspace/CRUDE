@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Django CRUD App - Complete Study Notes</title>
+    <style>
+      /* =========================================
+           CSS VARIABLES & THEME CONFIGURATION
+           ========================================= */
+      :root {
+        /* Light Mode (Default) */
+        --primary-color: #2563eb; /* Royal Blue */
+        --primary-hover: #1d4ed8;
+        --secondary-color: #475569; /* Slate Grey */
+        --bg-body: #f8fafc;
+        --bg-sidebar: #ffffff;
+        --bg-card: #ffffff;
+        --text-main: #1e293b;
+        --text-secondary: #64748b;
+        --border-color: #e2e8f0;
+        --code-bg: #1e293b;
+        --code-text: #e2e8f0;
+        --accent-green: #10b981;
+        --accent-red: #ef4444;
+        --accent-yellow: #f59e0b;
+        --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        --header-height: 70px;
+      }
+
+      body.dark-mode {
+        /* Dark Mode Overrides */
+        --primary-color: #60a5fa;
+        --primary-hover: #3b82f6;
+        --secondary-color: #94a3b8;
+        --bg-body: #0f172a;
+        --bg-sidebar: #1e293b;
+        --bg-card: #1e293b;
+        --text-main: #f1f5f9;
+        --text-secondary: #cbd5e1;
+        --border-color: #334155;
+        --code-bg: #020617;
+        --code-text: #f8fafc;
+        --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+      }
+
+      /* =========================================
+           RESET & BASE STYLES
+           ========================================= */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        transition: background-color 0.3s ease, color 0.3s ease,
+          border-color 0.3s ease;
+      }
+
+      html {
+        scroll-behavior: smooth;
+        scroll-padding-top: calc(var(--header-height) + 20px);
+      }
+
+      body {
+        font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+        background-color: var(--bg-body);
+        color: var(--text-main);
+        line-height: 1.6;
+        overflow-x: hidden;
+      }
+
+      a {
+        text-decoration: none;
+        color: inherit;
+      }
+      ul,
+      ol {
+        padding-left: 20px;
+      }
+
+      /* =========================================
+           LAYOUT GRID
+           ========================================= */
+      .app-container {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        min-height: 100vh;
+      }
+
+      /* =========================================
+           SIDEBAR (NAVIGATION)
+           ========================================= */
+      .sidebar {
+        background-color: var(--bg-sidebar);
+        border-right: 1px solid var(--border-color);
+        height: 100vh;
+        position: sticky;
+        top: 0;
+        overflow-y: auto;
+        padding: 20px;
+        z-index: 100;
+      }
+
+      .sidebar-header {
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .sidebar-title {
+        font-size: 1.2rem;
+        font-weight: 800;
+        color: var(--primary-color);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .nav-links {
+        list-style: none;
+        padding: 0;
+      }
+
+      .nav-item {
+        margin-bottom: 5px;
+      }
+
+      .nav-link {
+        display: block;
+        padding: 10px 15px;
+        border-radius: 8px;
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        font-weight: 500;
+        cursor: pointer;
+      }
+
+      .nav-link:hover,
+      .nav-link.active {
+        background-color: var(--primary-color);
+        color: white;
+      }
+
+      /* =========================================
+           MAIN CONTENT AREA
+           ========================================= */
+      .main-content {
+        padding: 30px 40px;
+        max-width: 1000px;
+        margin: 0 auto;
+        width: 100%;
+      }
+
+      /* Header */
+      .top-bar {
+        position: sticky;
+        top: 0;
+        background-color: var(--bg-body); /* matches body for seamless look */
+        height: var(--header-height);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 90;
+        margin-bottom: 20px;
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid transparent;
+      }
+
+      .top-bar.scrolled {
+        border-bottom: 1px solid var(--border-color);
+        background-color: rgba(var(--bg-body), 0.9);
+      }
+
+      .search-container {
+        position: relative;
+        width: 100%;
+        max-width: 400px;
+      }
+
+      .search-input {
+        width: 100%;
+        padding: 10px 15px 10px 40px;
+        border-radius: 20px;
+        border: 1px solid var(--border-color);
+        background-color: var(--bg-card);
+        color: var(--text-main);
+        outline: none;
+      }
+
+      .search-icon {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        opacity: 0.5;
+      }
+
+      .theme-toggle {
+        background: none;
+        border: 1px solid var(--border-color);
+        padding: 8px;
+        border-radius: 50%;
+        cursor: pointer;
+        color: var(--text-main);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .mobile-menu-btn {
+        display: none;
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: var(--text-main);
+        cursor: pointer;
+      }
+
+      /* =========================================
+           CONTENT STYLING
+           ========================================= */
+      h1 {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        color: var(--primary-color);
+      }
+      h2 {
+        font-size: 1.8rem;
+        margin: 2.5rem 0 1rem;
+        padding-bottom: 10px;
+        border-bottom: 2px solid var(--border-color);
+      }
+      h3 {
+        font-size: 1.4rem;
+        margin: 1.5rem 0 0.8rem;
+        color: var(--text-main);
+      }
+      h4 {
+        font-size: 1.1rem;
+        margin: 1rem 0 0.5rem;
+        font-weight: 700;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      p {
+        margin-bottom: 1rem;
+        color: var(--text-secondary);
+      }
+
+      /* Cards */
+      .card {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: var(--shadow);
+      }
+
+      .card-title {
+        font-weight: 700;
+        margin-bottom: 10px;
+        color: var(--primary-color);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      /* Code Blocks */
+      pre {
+        background-color: var(--code-bg);
+        color: var(--code-text);
+        padding: 15px;
+        border-radius: 8px;
+        overflow-x: auto;
+        margin-bottom: 1.5rem;
+        font-family: "Consolas", "Monaco", monospace;
+        font-size: 0.9rem;
+        border: 1px solid var(--border-color);
+      }
+
+      code {
+        font-family: "Consolas", "Monaco", monospace;
+        background-color: rgba(100, 116, 139, 0.1);
+        padding: 2px 5px;
+        border-radius: 4px;
+        color: var(--primary-color);
+      }
+
+      pre code {
+        background-color: transparent;
+        color: inherit;
+        padding: 0;
+      }
+
+      /* Tables */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 1.5rem;
+        background-color: var(--bg-card);
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+      }
+
+      th,
+      td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      th {
+        background-color: rgba(37, 99, 235, 0.1);
+        color: var(--primary-color);
+        font-weight: 600;
+      }
+
+      /* Lists */
+      .feature-list li {
+        margin-bottom: 8px;
+      }
+
+      /* Analogy Boxes */
+      .analogy-box {
+        border-left: 4px solid var(--accent-yellow);
+        background-color: rgba(245, 158, 11, 0.1);
+        padding: 15px;
+        border-radius: 0 8px 8px 0;
+        margin-bottom: 1.5rem;
+      }
+
+      .tip-box {
+        border-left: 4px solid var(--accent-green);
+        background-color: rgba(16, 185, 129, 0.1);
+        padding: 15px;
+        border-radius: 0 8px 8px 0;
+        margin-bottom: 1.5rem;
+      }
+
+      .warning-box {
+        border-left: 4px solid var(--accent-red);
+        background-color: rgba(239, 68, 68, 0.1);
+        padding: 15px;
+        border-radius: 0 8px 8px 0;
+        margin-bottom: 1.5rem;
+      }
+
+      /* Tree Structure */
+      .tree-structure {
+        font-family: monospace;
+        white-space: pre;
+        line-height: 1.2;
+      }
+
+      /* Accordion */
+      .accordion {
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 10px;
+        background-color: var(--bg-card);
+      }
+
+      .accordion-header {
+        padding: 15px;
+        background-color: rgba(100, 116, 139, 0.05);
+        cursor: pointer;
+        font-weight: 600;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .accordion-header:hover {
+        background-color: rgba(100, 116, 139, 0.1);
+      }
+
+      .accordion-content {
+        padding: 0 15px;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out, padding 0.3s ease;
+      }
+
+      .accordion.active .accordion-content {
+        padding: 15px;
+        max-height: 2000px; /* arbitrary large height */
+        border-top: 1px solid var(--border-color);
+      }
+
+      .accordion-icon {
+        transition: transform 0.3s ease;
+      }
+
+      .accordion.active .accordion-icon {
+        transform: rotate(180deg);
+      }
+
+      /* Steps Visualization */
+      .step-list {
+        counter-reset: step;
+        list-style: none;
+      }
+
+      .step-list li {
+        position: relative;
+        padding-left: 40px;
+        margin-bottom: 15px;
+      }
+
+      .step-list li::before {
+        counter-increment: step;
+        content: counter(step);
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 30px;
+        height: 30px;
+        background-color: var(--primary-color);
+        color: white;
+        border-radius: 50%;
+        text-align: center;
+        line-height: 30px;
+        font-weight: bold;
+        font-size: 0.8rem;
+      }
+
+      /* =========================================
+           RESPONSIVE
+           ========================================= */
+      @media (max-width: 768px) {
+        .app-container {
+          grid-template-columns: 1fr;
+        }
+        .sidebar {
+          position: fixed;
+          left: -100%;
+          width: 250px;
+          transition: left 0.3s ease;
+          box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+        }
+        .sidebar.active {
+          left: 0;
+        }
+        .mobile-menu-btn {
+          display: block;
+        }
+        .main-content {
+          padding: 20px;
+        }
+        h1 {
+          font-size: 1.8rem;
+        }
+        h2 {
+          font-size: 1.5rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- SIDEBAR NAVIGATION -->
+      <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-title">
+            <span>Django (CRUD APP)</span>
+          </div>
+        </div>
+        <ul class="nav-links">
+          <li class="nav-item">
+            <a href="#intro" class="nav-link active"
+              >1. Intro to Django & CRUD</a
+            >
+          </li>
+          <li class="nav-item">
+            <a href="#setup" class="nav-link">2. Setup & Installation</a>
+          </li>
+          <li class="nav-item">
+            <a href="#models" class="nav-link">3. Models (Database)</a>
+          </li>
+          <li class="nav-item">
+            <a href="#views" class="nav-link">4. Views (Logic)</a>
+          </li>
+          <li class="nav-item">
+            <a href="#urls" class="nav-link">5. URLs (Routing)</a>
+          </li>
+          <li class="nav-item">
+            <a href="#templates" class="nav-link">6. Templates (UI)</a>
+          </li>
+          <li class="nav-item">
+            <a href="#concepts" class="nav-link">7. Key Concepts</a>
+          </li>
+          <li class="nav-item">
+            <a href="#reference" class="nav-link">8. Quick Reference</a>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- MAIN CONTENT -->
+      <main class="main-content">
+        <!-- TOP BAR -->
+        <div class="top-bar" id="topBar">
+          <button class="mobile-menu-btn" id="menuBtn">☰</button>
+
+          <div class="search-container">
+            <span class="search-icon">🔍</span>
+            <input
+              type="text"
+              class="search-input"
+              id="searchInput"
+              placeholder="Search topics..."
+            />
+          </div>
+
+          <button
+            class="theme-toggle"
+            id="themeToggle"
+            title="Toggle Dark Mode"
+          >
+            🌚
+          </button>
+        </div>
+
+        <div id="content-area">
+          <header style="text-align: center; margin-bottom: 50px">
+            <h1>Django CRUD App Study Notes</h1>
+            <p>Building a Todo List Application - Complete Guide</p>
+          </header>
+
+          <!-- SECTION 1: INTRO -->
+          <section id="intro">
+            <h2>1. Introduction to Django & CRUD</h2>
+
+            <div class="card">
+              <h3 class="card-title">What is CRUD?</h3>
+              <p>
+                CRUD stands for the four basic operations you can perform on
+                data:
+              </p>
+              <ul class="feature-list">
+                <li>
+                  <strong>C</strong>reate (Add new data) -
+                  <em>e.g., Write a new note</em>
+                </li>
+                <li>
+                  <strong>R</strong>ead (View/display data) -
+                  <em>e.g., Look at your notes</em>
+                </li>
+                <li>
+                  <strong>U</strong>pdate (Modify existing data) -
+                  <em>e.g., Edit a note</em>
+                </li>
+                <li>
+                  <strong>D</strong>elete (Remove data) -
+                  <em>e.g., Erase a note</em>
+                </li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <h3 class="card-title">What is Django?</h3>
+              <div class="analogy-box">
+                <strong>Analogy:</strong> Instead of building a car from
+                scratch, Django gives you a pre-built engine, wheels, and frame.
+                You just customize it!
+              </div>
+              <p>Benefits:</p>
+              <ul>
+                <li>Handles database operations automatically</li>
+                <li>Manages URLs and routing</li>
+                <li>Provides security features</li>
+                <li>Has admin interface built-in</li>
+                <li>Uses Python (easy to learn)</li>
+              </ul>
+            </div>
+
+            <h3>Project Structure</h3>
+            <div class="card">
+              <div class="tree-structure">
+                myproject/ ← Main project folder ├── manage.py ← Command tool
+                (like TV remote) ├── myproject/ ← Settings folder │ ├──
+                settings.py ← Configuration (rules & settings) │ └── urls.py ←
+                Main URL routing (traffic director) └── todo/ ← Your app folder
+                ├── models.py ← Database structure ├── views.py ← Logic (the
+                brain) ├── urls.py ← App URLs (local routes) └── templates/ ←
+                HTML files └── todo/ └── todo_list.html
+              </div>
+            </div>
+
+            <div class="analogy-box">
+              <strong>School Analogy:</strong><br />
+              • <code>myproject/</code> = The school building<br />
+              • <code>settings.py</code> = School rules and policies<br />
+              • <code>todo/</code> = One classroom (you can have many)<br />
+              • <code>models.py</code> = The lesson plan (data structure)<br />
+              • <code>views.py</code> = The teacher (handles logic)<br />
+              • <code>templates/</code> = The textbooks (what students see)
+            </div>
+
+            <h3>How Web Apps Work</h3>
+            <ol class="step-list">
+              <li>User types URL in browser</li>
+              <li>Browser sends request to server</li>
+              <li>Django receives request</li>
+              <li>URLs.py routes to correct view</li>
+              <li>View processes logic</li>
+              <li>Database queried (if needed)</li>
+              <li>Template rendered with data</li>
+              <li>HTML sent to browser</li>
+              <li>User sees page</li>
+            </ol>
+          </section>
+
+          <!-- SECTION 2: SETUP -->
+          <section id="setup">
+            <h2>2. Setup & Installation</h2>
+
+            <div class="accordion">
+              <div class="accordion-header">
+                Step 1: Install Django <span class="accordion-icon">▼</span>
+              </div>
+              <div class="accordion-content">
+                <p>Terminal command:</p>
+                <pre><code>pip install django</code></pre>
+                <p>Verify installation:</p>
+                <pre><code>python -m django --version</code></pre>
+              </div>
+            </div>
+
+            <div class="accordion">
+              <div class="accordion-header">
+                Step 2: Create Project <span class="accordion-icon">▼</span>
+              </div>
+              <div class="accordion-content">
+                <pre><code># Create project
+django-admin startproject myproject
+
+# Navigate into project
+cd myproject
+
+# Create app
+python manage.py startapp todo</code></pre>
+                <p>
+                  <strong>startproject:</strong> Creates main project with
+                  settings.<br />
+                  <strong>startapp:</strong> Creates a smaller app inside
+                  project.
+                </p>
+              </div>
+            </div>
+
+            <div class="accordion">
+              <div class="accordion-header">
+                Step 3: Register Your App <span class="accordion-icon">▼</span>
+              </div>
+              <div class="accordion-content">
+                <p>
+                  Open <code>myproject/settings.py</code> and add your app to
+                  <code>INSTALLED_APPS</code>:
+                </p>
+                <pre><code>INSTALLED_APPS = [
+    'django.contrib.admin',
+    ...
+    'django.contrib.staticfiles',
+    'todo',  # ← Add this line
+]</code></pre>
+              </div>
+            </div>
+
+            <div class="accordion">
+              <div class="accordion-header">
+                Step 4: Run Initial Migrations
+                <span class="accordion-icon">▼</span>
+              </div>
+              <div class="accordion-content">
+                <pre><code>python manage.py makemigrations
+python manage.py migrate</code></pre>
+                <div class="analogy-box">
+                  <strong>Analogy:</strong> Writing a recipe (makemigrations)
+                  vs. cooking the food (migrate).
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- SECTION 3: MODELS -->
+          <section id="models">
+            <h2>3. Models - Database Structure</h2>
+            <p>
+              A model is a Python class representing a database table (like an
+              Excel spreadsheet structure).
+            </p>
+
+            <h3>The Todo Model</h3>
+            <p>File: <code>todo/models.py</code></p>
+            <pre><code>from django.db import models
+
+class Todo(models.Model):
+    text = models.CharField(max_length=200)
+    completed = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return self.text</code></pre>
+
+            <h3>Line-by-Line Explanation</h3>
+            <div class="card">
+              <h4>class Todo(models.Model):</h4>
+              <p>
+                Creates a class named Todo that inherits Django's Model
+                abilities. Creates a DB table called "todo".
+              </p>
+
+              <h4>text = models.CharField(max_length=200)</h4>
+              <p>
+                Creates a text column (textbox) holding up to 200 characters.
+              </p>
+
+              <h4>completed = models.BooleanField(default=False)</h4>
+              <p>Creates a True/False column (checkbox). Starts as False.</p>
+
+              <h4>created_at = models.DateTimeField(auto_now_add=True)</h4>
+              <p>Automatically records date and time when created.</p>
+
+              <h4>def __str__(self):</h4>
+              <p>
+                Determines how the object displays (e.g., in Admin panel). We
+                return the text.
+              </p>
+            </div>
+
+            <h3>Database Visualization</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>id</th>
+                  <th>text</th>
+                  <th>completed</th>
+                  <th>created_at</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1</td>
+                  <td>Buy milk</td>
+                  <td>False</td>
+                  <td>2024-12-07 10:00:00</td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td>Study Django</td>
+                  <td>True</td>
+                  <td>2024-12-07 11:00:00</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="tip-box">
+              Django automatically creates the 'id' column (primary key).
+            </div>
+
+            <div class="warning-box">
+              <strong>Don't forget!</strong> Run migrations after changing
+              models: <code>python manage.py makemigrations</code> then
+              <code>python manage.py migrate</code>
+            </div>
+          </section>
+
+          <!-- SECTION 4: VIEWS -->
+          <section id="views">
+            <h2>4. Views - The Logic Layer</h2>
+            <div class="analogy-box">
+              <strong>Analogy:</strong> A view is like a chef who takes orders
+              (request), cooks food (logic/database), and serves it (response).
+            </div>
+
+            <h3>Complete Views Code</h3>
+            <p>File: <code>todo/views.py</code></p>
+            <pre><code>from django.shortcuts import render, redirect, get_object_or_404
+from .models import Todo
+
+def todo_list(request):
+    todos = Todo.objects.all().order_by('-created_at')
+    return render(request, 'todo/todo_list.html', {'todos': todos})
+
+def add_todo(request):
+    if request.method == 'POST':
+        text = request.POST.get('text')
+        if text:
+            Todo.objects.create(text=text)
+        return redirect('todo_list')
+    return redirect('todo_list')
+
+def toggle_todo(request, todo_id):
+    todo = get_object_or_404(Todo, id=todo_id)
+    todo.completed = not todo.completed
+    todo.save()
+    return redirect('todo_list')
+
+def delete_todo(request, todo_id):
+    todo = get_object_or_404(Todo, id=todo_id)
+    todo.delete()
+    return redirect('todo_list')</code></pre>
+
+            <h3>Deep Dive</h3>
+            <div class="accordion">
+              <div class="accordion-header">
+                READ: todo_list <span class="accordion-icon">▼</span>
+              </div>
+              <div class="accordion-content">
+                <ol>
+                  <li><code>Todo.objects.all()</code>: Get ALL todos.</li>
+                  <li>
+                    <code>.order_by('-created_at')</code>: Sort by newest first
+                    (- means descending).
+                  </li>
+                  <li><code>render()</code>: Combines template with data.</li>
+                </ol>
+              </div>
+            </div>
+
+            <div class="accordion">
+              <div class="accordion-header">
+                CREATE: add_todo <span class="accordion-icon">▼</span>
+              </div>
+              <div class="accordion-content">
+                <ol>
+                  <li>Check if method is 'POST' (form submitted).</li>
+                  <li>Get data: <code>request.POST.get('text')</code>.</li>
+                  <li>
+                    Create in DB: <code>Todo.objects.create(text=text)</code>.
+                  </li>
+                  <li>Redirect to home.</li>
+                </ol>
+              </div>
+            </div>
+
+            <div class="accordion">
+              <div class="accordion-header">
+                UPDATE: toggle_todo <span class="accordion-icon">▼</span>
+              </div>
+              <div class="accordion-content">
+                <ol>
+                  <li>
+                    Find by ID:
+                    <code>get_object_or_404(Todo, id=todo_id)</code>.
+                  </li>
+                  <li>
+                    Flip status:
+                    <code>todo.completed = not todo.completed</code>.
+                  </li>
+                  <li>Save: <code>todo.save()</code>.</li>
+                  <li>Redirect.</li>
+                </ol>
+              </div>
+            </div>
+
+            <div class="accordion">
+              <div class="accordion-header">
+                DELETE: delete_todo <span class="accordion-icon">▼</span>
+              </div>
+              <div class="accordion-content">
+                <div class="warning-box">
+                  <code>.delete()</code> is permanent! No undo.
+                </div>
+                <ol>
+                  <li>Find by ID.</li>
+                  <li>Delete from DB.</li>
+                  <li>Redirect.</li>
+                </ol>
+              </div>
+            </div>
+          </section>
+
+          <!-- SECTION 5: URLS -->
+          <section id="urls">
+            <h2>5. URLs - Routing</h2>
+            <p>Connects web addresses to view functions.</p>
+
+            <h3>1. App URLs (todo/urls.py)</h3>
+            <pre><code>from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('', views.todo_list, name='todo_list'),
+    path('add/', views.add_todo, name='add_todo'),
+    path('toggle/&lt;int:todo_id&gt;/', views.toggle_todo, name='toggle_todo'),
+    path('delete/&lt;int:todo_id&gt;/', views.delete_todo, name='delete_todo'),
+]</code></pre>
+
+            <h4>Understanding Pattern Parameters</h4>
+            <p><code>&lt;int:todo_id&gt;</code> breakdown:</p>
+            <ul>
+              <li><code>&lt; &gt;</code>: Capture this part</li>
+              <li><code>int:</code>: Must be an integer</li>
+              <li><code>todo_id</code>: Variable name passed to view</li>
+            </ul>
+
+            <h3>2. Connect to Main Project (myproject/urls.py)</h3>
+            <pre><code>from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', include('todo.urls')), 
+]</code></pre>
+            <div class="tip-box">
+              <code>include()</code> tells Django: "For any URL here, look in
+              todo.urls for the rest."
+            </div>
+          </section>
+
+          <!-- SECTION 6: TEMPLATES -->
+          <section id="templates">
+            <h2>6. Templates - User Interface</h2>
+            <p>HTML with special tags to insert Python data.</p>
+
+            <h3>Template Syntax Guide</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Syntax</th>
+                  <th>Usage</th>
+                  <th>Example</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>{{ }}</code></td>
+                  <td>Variables</td>
+                  <td><code>{{ todo.text }}</code></td>
+                </tr>
+                <tr>
+                  <td><code>{% %}</code></td>
+                  <td>Logic tags</td>
+                  <td><code>{% if todos %}</code></td>
+                </tr>
+                <tr>
+                  <td><code>{% for %}</code></td>
+                  <td>Loops</td>
+                  <td><code>{% for todo in todos %}</code></td>
+                </tr>
+                <tr>
+                  <td><code>{% url %}</code></td>
+                  <td>Links</td>
+                  <td><code>{% url 'add_todo' %}</code></td>
+                </tr>
+                <tr>
+                  <td><code>|</code></td>
+                  <td>Filters</td>
+                  <td><code>{{ text|upper }}</code></td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="warning-box">
+              <strong>CSRF Token:</strong> Always include
+              <code>{% csrf_token %}</code> inside POST forms for security!
+            </div>
+
+            <h3>Complete HTML Template</h3>
+            <div class="accordion">
+              <div class="accordion-header">
+                View todo_list.html Code <span class="accordion-icon">▼</span>
+              </div>
+              <div class="accordion-content">
+                <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;Django Todo App&lt;/title&gt;
+    &lt;!-- CSS Styles omitted for brevity --&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;div class="container"&gt;
+        &lt;h1&gt;📝 Django Todo List&lt;/h1&gt;
+        
+        &lt;form action="{% url 'add_todo' %}" method="post"&gt;
+            {% csrf_token %}
+            &lt;input type="text" name="text" required&gt;
+            &lt;button type="submit"&gt;Add&lt;/button&gt;
+        &lt;/form&gt;
+
+        &lt;ul&gt;
+            {% for todo in todos %}
+                &lt;li&gt;
+                    {{ todo.text }}
+                    &lt;a href="{% url 'toggle_todo' todo.id %}"&gt;
+                        {% if todo.completed %}Undo{% else %}Done{% endif %}
+                    &lt;/a&gt;
+                    &lt;a href="{% url 'delete_todo' todo.id %}"&gt;Delete&lt;/a&gt;
+                &lt;/li&gt;
+            {% empty %}
+                &lt;p&gt;No todos yet.&lt;/p&gt;
+            {% endfor %}
+        &lt;/ul&gt;
+    &lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+              </div>
+            </div>
+          </section>
+
+          <!-- SECTION 7: KEY CONCEPTS -->
+          <section id="concepts">
+            <h2>7. Key Concepts Explained</h2>
+
+            <h3>Request Object</h3>
+            <p>A package containing info about the user's action.</p>
+            <ul>
+              <li><code>request.method</code>: GET or POST</li>
+              <li><code>request.POST</code>: Form data</li>
+              <li><code>request.user</code>: Current user</li>
+            </ul>
+
+            <h3>GET vs POST</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Feature</th>
+                  <th>GET</th>
+                  <th>POST</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Purpose</td>
+                  <td>View Data</td>
+                  <td>Send/Update Data</td>
+                </tr>
+                <tr>
+                  <td>Data Location</td>
+                  <td>URL (?a=b)</td>
+                  <td>Body (Hidden)</td>
+                </tr>
+                <tr>
+                  <td>Use Case</td>
+                  <td>Links, Search</td>
+                  <td>Forms</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <h3>get_object_or_404</h3>
+            <p>
+              Tries to get an object. If found, returns it. If not, shows a nice
+              404 Error page instead of crashing.
+            </p>
+            <pre><code># Good
+todo = get_object_or_404(Todo, id=5)
+
+# Risky (can crash)
+todo = Todo.objects.get(id=5)</code></pre>
+
+            <h3>MVT Pattern</h3>
+            <div class="card">
+              <p>
+                <strong>M</strong>odel (DB) → <strong>V</strong>iew (Logic) →
+                <strong>T</strong>emplate (UI)
+              </p>
+              <p>Flow: Request → URL → View → Model → Template → Response</p>
+            </div>
+          </section>
+
+          <!-- SECTION 8: QUICK REFERENCE -->
+          <section id="reference">
+            <h2>8. Quick Reference Guide</h2>
+
+            <div class="card">
+              <h3>Essential Commands</h3>
+              <pre><code>pip install django
+django-admin startproject name
+python manage.py startapp name
+python manage.py makemigrations
+python manage.py migrate
+python manage.py runserver</code></pre>
+            </div>
+
+            <div class="card">
+              <h3>Common Model Fields</h3>
+              <ul>
+                <li><code>CharField</code>: Short text</li>
+                <li><code>TextField</code>: Long text</li>
+                <li><code>IntegerField</code>: Numbers</li>
+                <li><code>BooleanField</code>: True/False</li>
+                <li><code>DateTimeField</code>: Date & Time</li>
+              </ul>
+            </div>
+
+            <div class="card">
+              <h3>Template Cheat Sheet</h3>
+              <pre><code>{{ variable }}
+{% if condition %} ... {% endif %}
+{% for item in items %} ... {% endfor %}
+{% url 'name' arg %}
+{% csrf_token %}
+{{ value|filter }}</code></pre>
+            </div>
+          </section>
+
+          <footer
+            style="
+              margin-top: 60px;
+              padding-top: 20px;
+              border-top: 1px solid var(--border-color);
+              text-align: center;
+              color: var(--text-secondary);
+            "
+          >
+            <p>Django CRUD App Study Notes • Generated Guide</p>
+          </footer>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      // =========================================
+      // THEME TOGGLE
+      // =========================================
+      const themeToggle = document.getElementById("themeToggle");
+      const body = document.body;
+
+      // Check saved theme
+      const savedTheme = localStorage.getItem("theme");
+      if (savedTheme === "dark") {
+        body.classList.add("dark-mode");
+        themeToggle.innerHTML = "☀️ LIGHT";
+      }
+
+      themeToggle.addEventListener("click", () => {
+        body.classList.toggle("dark-mode");
+        if (body.classList.contains("dark-mode")) {
+          localStorage.setItem("theme", "dark");
+          themeToggle.innerHTML = "☀️ LIGHT";
+        } else {
+          localStorage.setItem("theme", "light");
+          themeToggle.innerHTML = "🌚 DARK";
+        }
+      });
+
+      // =========================================
+      // MOBILE MENU
+      // =========================================
+      const menuBtn = document.getElementById("menuBtn");
+      const sidebar = document.getElementById("sidebar");
+      const navLinks = document.querySelectorAll(".nav-link");
+
+      menuBtn.addEventListener("click", () => {
+        sidebar.classList.toggle("active");
+      });
+
+      // Close sidebar when a link is clicked
+      navLinks.forEach((link) => {
+        link.addEventListener("click", () => {
+          sidebar.classList.remove("active");
+        });
+      });
+
+      // =========================================
+      // SEARCH FUNCTIONALITY
+      // =========================================
+      const searchInput = document.getElementById("searchInput");
+      const sections = document.querySelectorAll("section");
+
+      searchInput.addEventListener("input", (e) => {
+        const term = e.target.value.toLowerCase();
+
+        sections.forEach((section) => {
+          const text = section.innerText.toLowerCase();
+          if (text.includes(term)) {
+            section.style.display = "block";
+          } else {
+            section.style.display = "none";
+          }
+        });
+
+        // If search is empty, show all
+        if (term === "") {
+          sections.forEach((s) => (s.style.display = "block"));
+        }
+      });
+
+      // =========================================
+      // ACCORDIONS
+      // =========================================
+      const accordions = document.querySelectorAll(".accordion-header");
+
+      accordions.forEach((acc) => {
+        acc.addEventListener("click", () => {
+          const parent = acc.parentElement;
+          parent.classList.toggle("active");
+        });
+      });
+
+      // =========================================
+      // SCROLL SPY (HIGHLIGHT SIDEBAR)
+      // =========================================
+      const topBar = document.getElementById("topBar");
+
+      window.addEventListener("scroll", () => {
+        // Sticky Header visual effect
+        if (window.scrollY > 10) {
+          topBar.classList.add("scrolled");
+        } else {
+          topBar.classList.remove("scrolled");
+        }
+
+        // Active Link Highlight
+        let current = "";
+        sections.forEach((section) => {
+          const sectionTop = section.offsetTop;
+          const sectionHeight = section.clientHeight;
+          if (pageYOffset >= sectionTop - 150) {
+            current = section.getAttribute("id");
+          }
+        });
+
+        navLinks.forEach((link) => {
+          link.classList.remove("active");
+          if (link.getAttribute("href").includes(current)) {
+            link.classList.add("active");
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
