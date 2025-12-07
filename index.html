@@ -628,13 +628,20 @@
             <h3>Project Structure</h3>
             <div class="card">
               <div class="tree-structure">
-                myproject/ ← Main project folder ├── manage.py ← Command tool
-                (like TV remote) ├── myproject/ ← Settings folder │ ├──
-                settings.py ← Configuration (rules & settings) │ └── urls.py ←
-                Main URL routing (traffic director) └── todo/ ← Your app folder
-                ├── models.py ← Database structure ├── views.py ← Logic (the
-                brain) ├── urls.py ← App URLs (local routes) └── templates/ ←
-                HTML files └── todo/ └── todo_list.html
+                <p>
+                  myproject/ ← Main project folder <br />
+                  ├── manage.py ← Command tool(like TV remote) <br />
+                  ├── myproject/ ← Settings folder │ <br />
+                  ├── settings.py ← Configuration (rules & settings) <br />
+                  │ └── urls.py ← Main URL routing (traffic director) <br />
+                  └── todo/ ← Your app folder <br />
+                  ├── models.py ← Database structure <br />
+                  ├── views.py ← Logic (the brain) <br />
+                  ├── urls.py ← App URLs (local routes) <br />
+                  └── templates/ ← HTML files <br />
+                  ── todo/ <br />
+                  └── todo_list.html <br />
+                </p>
               </div>
             </div>
 
@@ -1121,9 +1128,14 @@ todo = Todo.objects.get(id=5)</code></pre>
 
             <div class="card">
               <h3>Essential Commands</h3>
-              <pre><code>pip install django
+              <pre><code>
+create virtual environment: python -m venv env
+activate virtual environment: venv\Scripts\activate (Windows)
+activate virtual environment: source venv/bin/activate (Mac/Linux)
+pip install django
 django-admin startproject name
-python manage.py startapp name
+django-admin startapp name
+register your app in settings.py > INSTALLED_APPS
 python manage.py makemigrations
 python manage.py migrate
 python manage.py runserver</code></pre>
