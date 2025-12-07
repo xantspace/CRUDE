@@ -282,6 +282,7 @@
       code {
         font-family: "Consolas", "Monaco", monospace;
         background-color: rgba(100, 116, 139, 0.1);
+        background-color: var(--code-bg);
         padding: 2px 5px;
         border-radius: 4px;
         color: var(--primary-color);
@@ -347,6 +348,12 @@
         margin-bottom: 1.5rem;
       }
 
+      .table-wrapper {
+        overflow-x: auto;
+        margin-bottom: 1.5rem;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+      }
       /* Tree Structure */
       .tree-structure {
         font-family: monospace;
@@ -392,6 +399,7 @@
 
       .accordion-icon {
         transition: transform 0.3s ease;
+        transition: transform 0.3s ease;
       }
 
       .accordion.active .accordion-icon {
@@ -427,6 +435,15 @@
         font-size: 0.8rem;
       }
 
+      /* Mobile Overlay */
+      .overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 99;
+      }
+
       /* =========================================
            RESPONSIVE
            ========================================= */
@@ -456,10 +473,42 @@
         h2 {
           font-size: 1.5rem;
         }
+        .top-bar {
+          gap: 15px;
+          flex-wrap: wrap;
+        }
+        body {
+          line-height: 1.7;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .main-content {
+          padding: 15px;
+        }
+        h1 {
+          font-size: 1.6rem;
+        }
+        h2 {
+          font-size: 1.3rem;
+        }
+        h3 {
+          font-size: 1.2rem;
+        }
+        .top-bar {
+          height: auto;
+          padding-top: 10px;
+          padding-bottom: 10px;
+        }
+        .search-container {
+          order: 3;
+          flex-basis: 100%;
+        }
       }
     </style>
   </head>
   <body>
+    <div class="overlay" id="overlay"></div>
     <div class="app-container">
       <!-- SIDEBAR NAVIGATION -->
       <nav class="sidebar" id="sidebar">
@@ -732,30 +781,32 @@ class Todo(models.Model):
             </div>
 
             <h3>Database Visualization</h3>
-            <table>
-              <thead>
-                <tr>
-                  <th>id</th>
-                  <th>text</th>
-                  <th>completed</th>
-                  <th>created_at</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>1</td>
-                  <td>Buy milk</td>
-                  <td>False</td>
-                  <td>2024-12-07 10:00:00</td>
-                </tr>
-                <tr>
-                  <td>2</td>
-                  <td>Study Django</td>
-                  <td>True</td>
-                  <td>2024-12-07 11:00:00</td>
-                </tr>
-              </tbody>
-            </table>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>id</th>
+                    <th>text</th>
+                    <th>completed</th>
+                    <th>created_at</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>1</td>
+                    <td>Buy milk</td>
+                    <td>False</td>
+                    <td>2024-12-07 10:00:00</td>
+                  </tr>
+                  <tr>
+                    <td>2</td>
+                    <td>Study Django</td>
+                    <td>True</td>
+                    <td>2024-12-07 11:00:00</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
             <div class="tip-box">
               Django automatically creates the 'id' column (primary key).
             </div>
@@ -916,42 +967,44 @@ urlpatterns = [
             <p>HTML with special tags to insert Python data.</p>
 
             <h3>Template Syntax Guide</h3>
-            <table>
-              <thead>
-                <tr>
-                  <th>Syntax</th>
-                  <th>Usage</th>
-                  <th>Example</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><code>{{ }}</code></td>
-                  <td>Variables</td>
-                  <td><code>{{ todo.text }}</code></td>
-                </tr>
-                <tr>
-                  <td><code>{% %}</code></td>
-                  <td>Logic tags</td>
-                  <td><code>{% if todos %}</code></td>
-                </tr>
-                <tr>
-                  <td><code>{% for %}</code></td>
-                  <td>Loops</td>
-                  <td><code>{% for todo in todos %}</code></td>
-                </tr>
-                <tr>
-                  <td><code>{% url %}</code></td>
-                  <td>Links</td>
-                  <td><code>{% url 'add_todo' %}</code></td>
-                </tr>
-                <tr>
-                  <td><code>|</code></td>
-                  <td>Filters</td>
-                  <td><code>{{ text|upper }}</code></td>
-                </tr>
-              </tbody>
-            </table>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Syntax</th>
+                    <th>Usage</th>
+                    <th>Example</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>{{ }}</code></td>
+                    <td>Variables</td>
+                    <td><code>{{ todo.text }}</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>{% %}</code></td>
+                    <td>Logic tags</td>
+                    <td><code>{% if todos %}</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>{% for %}</code></td>
+                    <td>Loops</td>
+                    <td><code>{% for todo in todos %}</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>{% url %}</code></td>
+                    <td>Links</td>
+                    <td><code>{% url 'add_todo' %}</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>|</code></td>
+                    <td>Filters</td>
+                    <td><code>{{ text|upper }}</code></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
             <div class="warning-box">
               <strong>CSRF Token:</strong> Always include
               <code>{% csrf_token %}</code> inside POST forms for security!
@@ -1012,32 +1065,34 @@ urlpatterns = [
             </ul>
 
             <h3>GET vs POST</h3>
-            <table>
-              <thead>
-                <tr>
-                  <th>Feature</th>
-                  <th>GET</th>
-                  <th>POST</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Purpose</td>
-                  <td>View Data</td>
-                  <td>Send/Update Data</td>
-                </tr>
-                <tr>
-                  <td>Data Location</td>
-                  <td>URL (?a=b)</td>
-                  <td>Body (Hidden)</td>
-                </tr>
-                <tr>
-                  <td>Use Case</td>
-                  <td>Links, Search</td>
-                  <td>Forms</td>
-                </tr>
-              </tbody>
-            </table>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Feature</th>
+                    <th>GET</th>
+                    <th>POST</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Purpose</td>
+                    <td>View Data</td>
+                    <td>Send/Update Data</td>
+                  </tr>
+                  <tr>
+                    <td>Data Location</td>
+                    <td>URL (?a=b)</td>
+                    <td>Body (Hidden)</td>
+                  </tr>
+                  <tr>
+                    <td>Use Case</td>
+                    <td>Links, Search</td>
+                    <td>Forms</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
 
             <h3>get_object_or_404</h3>
             <p>
@@ -1106,6 +1161,7 @@ python manage.py runserver</code></pre>
             "
           >
             <p>Django CRUD App Study Notes • Generated Guide</p>
+            <p>&copy; 2025 XantSpace. All Rights Reserved</p>
           </footer>
         </div>
       </main>
@@ -1122,17 +1178,17 @@ python manage.py runserver</code></pre>
       const savedTheme = localStorage.getItem("theme");
       if (savedTheme === "dark") {
         body.classList.add("dark-mode");
-        themeToggle.innerHTML = "☀️ LIGHT";
+        themeToggle.innerHTML = "☀️";
       }
 
       themeToggle.addEventListener("click", () => {
         body.classList.toggle("dark-mode");
         if (body.classList.contains("dark-mode")) {
           localStorage.setItem("theme", "dark");
-          themeToggle.innerHTML = "☀️ LIGHT";
+          themeToggle.innerHTML = "☀️";
         } else {
           localStorage.setItem("theme", "light");
-          themeToggle.innerHTML = "🌚 DARK";
+          themeToggle.innerHTML = "🌚";
         }
       });
 
@@ -1141,16 +1197,25 @@ python manage.py runserver</code></pre>
       // =========================================
       const menuBtn = document.getElementById("menuBtn");
       const sidebar = document.getElementById("sidebar");
+      const overlay = document.getElementById("overlay");
       const navLinks = document.querySelectorAll(".nav-link");
 
-      menuBtn.addEventListener("click", () => {
+      function toggleMenu() {
         sidebar.classList.toggle("active");
-      });
+        overlay.style.display = sidebar.classList.contains("active")
+          ? "block"
+          : "none";
+      }
+
+      menuBtn.addEventListener("click", toggleMenu);
+      overlay.addEventListener("click", toggleMenu);
 
       // Close sidebar when a link is clicked
       navLinks.forEach((link) => {
         link.addEventListener("click", () => {
-          sidebar.classList.remove("active");
+          if (sidebar.classList.contains("active")) {
+            toggleMenu();
+          }
         });
       });
 
